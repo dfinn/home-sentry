@@ -38,18 +38,16 @@ class PyTorchDetector(Detector):
     """
 
     def __init__(self, config=None):
-        self.confidence_threshold = 0.5 if config is None else config['confidence_threshold']
         model = MODEL_MOBILENET if (config is None or 'model' not in config) else config['model']
         cuda_available = torch.cuda.is_available()
         print(
-            f'Init PyTorchDetector: confidence_threshold={self.confidence_threshold}, cuda.is_available={cuda_available}, model={model}')
+            f'Init PyTorchDetector: cuda.is_available={cuda_available}, model={model}')
         if cuda_available:
             device_name = "cuda"
         else:
             device_name = "cpu"
         print(f'Using device: {device_name}')
         self.device = torch.device(device_name)
-        self.colors = np.random.uniform(0, 255, size=(len(COCO_CLASSES), 3))
         self.models = {
             MODEL_RESNET: detection.fasterrcnn_resnet50_fpn,
             MODEL_MOBILENET: detection.fasterrcnn_mobilenet_v3_large_fpn,
@@ -87,12 +85,7 @@ class PyTorchDetector(Detector):
                 bottom_right_relative = Point(endX / width, endY / height)
                 video_source.log.info(
                     f'Detection: conf={confidence}, TL={top_left_relative}, BR={bottom_right_relative}')
-                if confidence > self.confidence_threshold:
-                    label = "{}: {:.2f}%".format(COCO_CLASSES[idx], confidence * 100)
-                    cv2.rectangle(original_image, (startX, startY), (endX, endY), self.colors[idx], 2)
-                    y = startY - 15 if startY - 15 > 15 else startY + 15
-                    cv2.putText(original_image, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, self.colors[idx], 2)
-                    person_detection = PersonDetection(top_left_relative, bottom_right_relative, confidence,
-                                                       time.time())
-                    person_detections.append(person_detection)
+                person_detection = PersonDetection(top_left_relative, bottom_right_relative, confidence,
+                                                   time.time())
+                person_detections.append(person_detection)
         return DetectionResult(person_detections, original_image)

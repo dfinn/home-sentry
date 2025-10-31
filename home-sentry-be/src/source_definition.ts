@@ -8,7 +8,8 @@ interface SourceDefinition {
   url: string,
   enabled: boolean,
   exclusions: Array<Exclusion>,
-  zones: Array<Zone>
+  zones: Array<Zone>,
+  confidence_threshold: number
 }
 
 export default SourceDefinition;

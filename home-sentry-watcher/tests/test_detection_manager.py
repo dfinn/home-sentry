@@ -1,3 +1,4 @@
+import tempfile
 import time
 from unittest import TestCase
 from unittest.mock import Mock
@@ -25,7 +26,7 @@ class TestDetectionManager(TestCase):
 
     def init(self, exclusion):
         source_definition = SourceDefinition(id=SOURCE_ID, name=SOURCE_NAME, type='test', url='test', enabled=True,
-                                             exclusions=[exclusion], zones=[])
+                                             exclusions=[exclusion], zones=[], confidence_threshold=0.5)
         self.video_source = FakeSource(source_definition, True)
         self.detector: Detector = Mock()
         source_manager: SourceManager = Mock()
@@ -33,6 +34,8 @@ class TestDetectionManager(TestCase):
         self.config_helper: ConfigHelper = Mock()
         self.config_helper.get_image_resize_width.return_value = 640
         self.config_helper.get_save_images.return_value = False
+        self.config_helper.get_show_images.return_value = False
+        self.config_helper.get_output_folder.return_value = tempfile.mkdtemp()
         self.config_helper.get_cool_down_interval.return_value = 0
         self.config_helper.get_last_person_detection_exclusion_threshold.return_value = 0.05
         self.config_helper.get_last_person_detection_expiration_seconds.return_value = 60
@@ -107,3 +110,21 @@ class TestDetectionManager(TestCase):
         self.video_source.last_person_detection.detection_time = 0
         self.detection_manager.capture_detect_notify(self.video_source)
         self.assertEqual(2, self.test_notifier.num_notifications)
+
+    def test_notification_not_sent_when_confidence_below_threshold(self):
+        self.init(Exclusion(id='test_exclusion', name='Test Exclusion', top_left=Point(0.8, 0.8),
+                            bottom_right=Point(0.9, 0.9), threshold=.1))
+        # Source has confidence_threshold=0.5, detection has confidence=0.4 (below threshold)
+        self.detector.detect.return_value = DetectionResult(
+            [PersonDetection(Point(0.21, 0.25), Point(0.31, 0.49), 0.4, time.time())], IMAGE)
+        self.detection_manager.capture_detect_notify(self.video_source)
+        self.assertEqual(0, self.test_notifier.num_notifications)
+
+    def test_notification_sent_when_confidence_above_threshold(self):
+        self.init(Exclusion(id='test_exclusion', name='Test Exclusion', top_left=Point(0.8, 0.8),
+                            bottom_right=Point(0.9, 0.9), threshold=.1))
+        # Source has confidence_threshold=0.5, detection has confidence=0.6 (above threshold)
+        self.detector.detect.return_value = DetectionResult(
+            [PersonDetection(Point(0.21, 0.25), Point(0.31, 0.49), 0.6, time.time())], IMAGE)
+        self.detection_manager.capture_detect_notify(self.video_source)
+        self.assertEqual(1, self.test_notifier.num_notifications)

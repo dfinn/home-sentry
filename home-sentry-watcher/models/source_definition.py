@@ -8,7 +8,7 @@ from models.zone import Zone
 class SourceDefinition:
 
     def __init__(self, id: str, name: str, type: str, url: str, enabled: bool, exclusions: List[Exclusion],
-                 zones: List[Zone]):
+                 zones: List[Zone], confidence_threshold: float):
         self.id = id
         self.name = name
         self.type = type
@@ -16,6 +16,7 @@ class SourceDefinition:
         self.enabled = enabled
         self.exclusions: List[Exclusion] = exclusions
         self.zones: List[Zone] = zones
+        self.confidence_threshold: float = confidence_threshold
 
     @staticmethod
     def from_dict(data: dict) -> 'SourceDefinition':
@@ -28,6 +29,7 @@ class SourceDefinition:
                 data['enabled'],
                 [Exclusion.from_dict(exclusion_data) for exclusion_data in data['exclusions']],
                 [Zone.from_dict(zone_data) for zone_data in data['zones']] if 'zones' in data else [],
+                data['confidence_threshold'],
             )
         except KeyError as e:
             print(f'KeyError when parsing SourceDefinition from data: {data}')
