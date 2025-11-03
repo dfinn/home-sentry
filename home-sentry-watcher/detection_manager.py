@@ -69,6 +69,7 @@ class DetectionManager:
         detection_result = self.detector.detect(resized_image, video_source)
         detection_elapsed_time = time.perf_counter() - detection_start_time
         should_log = log.is_verbose_mode or detection_result.count() > 0
+        self.filter_by_confidence_threshold(detection_result, video_source)
         self.filter_excluded_detections(detection_result, video_source)
 
         # Determine how many detections are inside of any zone versus outside of any zone
@@ -99,6 +100,22 @@ class DetectionManager:
                     cv2.imwrite(dest, detection_result.image)
         if self.show_images:
             show_image_foreground(source_name, detection_result.image, on_mouse_event)
+
+    def filter_by_confidence_threshold(self, detection_result: DetectionResult, source: VideoSource):
+        """
+        Removes any detections from the provided detection_result which have confidence
+        below or equal to the confidence_threshold defined for the source.
+        """
+        threshold = source.source_definition.confidence_threshold
+        detections_to_keep = [
+            person_detection for person_detection in detection_result.person_detections
+            if person_detection.confidence > threshold
+        ]
+        if len(detections_to_keep) < len(detection_result.person_detections):
+            source.log.info(
+                f'Filtered out {len(detection_result.person_detections) - len(detections_to_keep)} '
+                f'detections below confidence threshold {threshold}')
+        detection_result.person_detections = detections_to_keep
 
     def filter_excluded_detections(self, detection_result: DetectionResult, source: VideoSource):
         """

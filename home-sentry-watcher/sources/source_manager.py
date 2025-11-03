@@ -104,7 +104,7 @@ class SourceManager:
         print(f'{len(self.source_definitions)} sources defined:')
         for key in self.source_definitions.keys():
             s = self.source_definitions[key]
-            print(f'   {s.id} ({s.name}): type={s.type}, enabled={s.enabled}')
+            print(f'   {s.id} ({s.name}): type={s.type}, enabled={s.enabled}, confidence_threshold={s.confidence_threshold}')
 
     @staticmethod
     def check_http_response(response, expected_status_code, error_message):

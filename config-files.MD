@@ -51,7 +51,6 @@ Configuration settings for object detection.
 | ------- | ----------- |
 | name | Name of the detector to use. Only "pytorch" is supported at this time. |
 | config.model | Name of the detector model to use, see the section below. |
-| config.confidence_threshold | Minimum confidence the detector must report for the detection to trigger a notification (example, 0.95 for 95% confidence)|
 
 Supported pytorch detection models:
 | Name | Description |
@@ -66,8 +65,7 @@ Example file contents:
     "name": "pytorch",
     "config":
     {
-        "model": "frcnn-mobilenet",
-        "confidence_threshold": 0.95
+        "model": "frcnn-mobilenet"
     }
 }
 ```
@@ -133,6 +131,7 @@ The following settings must be defined for each source:
 | type | Currently only "rtsp" is supported |
 | url | The RTSP URL of the source |
 | enabled | Whether monitoring of this source is enabled |
+| confidence_threshold | Minimum confidence the detector must report for the detection to trigger a notification (example, 0.95 for 95% confidence) |
 | exclusions | List of detection locations (ie, bounding boxes) to exclude from notifications. |
 | zones | List of zones for this source. If none are defined, the entire image will be considered one zone. |
 
@@ -163,6 +162,7 @@ Example file contents:
         "type": "rtsp",
         "url": "rtsp://username:password@192.168.1.100:554/cam/realmonitor?channel=1&subtype=1&unicast=true&proto=Onvif",
         "enabled": true,
+        "confidence_threshold": 0.95,
         "exclusions": [],
         "zones": []
     },
@@ -172,6 +172,7 @@ Example file contents:
         "type": "rtsp",
         "url": "rtsp://username:password@192.168.1.101:554/cam/realmonitor?channel=1&subtype=1&unicast=true&proto=Onvif",
         "enabled": true,
+        "confidence_threshold": 0.90,
         "exclusions":
         [
             {

@@ -6,7 +6,7 @@ Monitors RTSP video streams from your cameras and notifies you when people are d
 - Supports any number of RTSP camera feeds (within available memory)
 - Configurable notification targets: Telegram or MQTT
 - Configurable cool-down period to avoid repeat notifications
-- Configuirable confidence threshold for notification to occur  
+- Configurable confidence threshold for notification to occur  
 - Supports custom "zones" for each camera source, so you can include only specified region(s) for detection
 - Supports user-defined "exclusions" for each camera source, so you can exclude a specific fixed location causing repeat false detections
 - Automatic temporary exclusion of previous detected location, to help reduce false detections from fixed objects
