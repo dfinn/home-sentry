@@ -19,6 +19,7 @@ class ZoneMinderNotifier(Notifier):
         self.record_duration = record_duration
         self.username = username
         self.password = password
+        self.telegram_notifier = None
 
     def notify_detections(self, detection_result: DetectionResult, source_definition, log):
         monitor_id = source_definition.zoneminder_monitor_id
@@ -29,12 +30,12 @@ class ZoneMinderNotifier(Notifier):
         try:
             with socket.create_connection((self.hostname, ZM_TRIGGER_PORT), timeout=5) as sock:
                 sock.sendall(message.encode())
-            thread = threading.Thread(target=self._fetch_event_url, args=(monitor_id, log), daemon=True)
+            thread = threading.Thread(target=self._fetch_event_url, args=(monitor_id, source_definition.name, log), daemon=True)
             thread.start()
         except OSError as e:
             log.info(f'ZoneMinder trigger failed ({self.hostname}:{ZM_TRIGGER_PORT}): {e}')
 
-    def _fetch_event_url(self, monitor_id, log):
+    def _fetch_event_url(self, monitor_id, source_name, log):
         time.sleep(self.record_duration + 2)
         try:
             token = self._get_auth_token(log)
@@ -46,7 +47,10 @@ class ZoneMinderNotifier(Notifier):
             events = data.get('events', [])
             if events:
                 event_id = events[0]['Event']['Id']
-                log.info(f'ZoneMinder event URL: http://{self.hostname}/zm/index.php?view=event&eid={event_id}')
+                event_url = f'http://{self.hostname}/zm/index.php?view=event&eid={event_id}'
+                log.info(f'ZoneMinder event URL: {event_url}')
+                if self.telegram_notifier:
+                    self.telegram_notifier.send_text(f'{source_name}: {event_url}', log)
             else:
                 log.info(f'ZoneMinder: no event found for monitor {monitor_id}')
         except Exception as e:

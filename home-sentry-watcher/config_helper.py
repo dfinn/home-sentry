@@ -56,6 +56,10 @@ class ConfigHelper:
         destinations = self.notifications['destinations']
         print(f'Notification destinations: {destinations}')
         notifiers = [self._build_notifier(d) for d in destinations]
+        zm = next((n for n in notifiers if isinstance(n, ZoneMinderNotifier)), None)
+        tg = next((n for n in notifiers if isinstance(n, TelegramNotifier)), None)
+        if zm and tg:
+            zm.telegram_notifier = tg
         return MultiNotifier(notifiers)
 
     def _build_notifier(self, destination):
