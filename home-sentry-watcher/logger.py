@@ -5,9 +5,15 @@ class Logger:
         self.is_verbose_mode = is_verbose_mode
 
     def verbose(self, msg):
+        """
+        Logs the message only if verbose mode is active.
+        """
         if self.is_verbose_mode:
             print(f'[{self.name}] {msg}')
 
     def info(self, msg):
+        """
+        Logs the message provided.
+        """
         print(f'[{self.name}] {msg}')
 

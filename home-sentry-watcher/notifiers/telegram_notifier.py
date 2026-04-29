@@ -27,10 +27,8 @@ class TelegramNotifier(Notifier):
         print(f'sendMessage: {response.status_code}')
 
     def send_photo(self, image, caption):
-        with Timer('Telegram notification'):
-            files = {'photo': image}
-            response = requests.post(self.url_for('sendPhoto'), {'chat_id': self.chat_id, 'caption': caption},
-                                     files=files)
+        files = {'photo': image}
+        response = requests.post(self.url_for('sendPhoto'), {'chat_id': self.chat_id, 'caption': caption}, files=files)
 
     def url_for(self, method_name):
         return f'https://api.telegram.org/bot{self.token}/{method_name}'

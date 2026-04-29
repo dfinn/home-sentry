@@ -59,7 +59,7 @@ class DetectionManager:
     def capture_detect_notify(self, video_source: VideoSource):
         source_definition = video_source.source_definition
         log = video_source.log
-        log.info(f'Capturing image from source {source_definition.name}')
+        log.verbose(f'Capturing image from source {source_definition.name}')
         image = video_source.capture()
         if image is None:
             return
@@ -78,7 +78,7 @@ class DetectionManager:
         source_name = source_definition.name
 
         if should_log:
-            log.info(
+            log.verbose(
                 f'Detection time {detection_elapsed_time:0.4f} seconds, inside_zone_count={inside_zone_count}, '
                 f'outside_zone_count={outside_zone_count} [{detection_result}]')
         if inside_zone_count > 0:
@@ -112,7 +112,7 @@ class DetectionManager:
             if person_detection.confidence > threshold
         ]
         if len(detections_to_keep) < len(detection_result.person_detections):
-            source.log.info(
+            source.log.verbose(
                 f'Filtered out {len(detection_result.person_detections) - len(detections_to_keep)} '
                 f'detections below confidence threshold {threshold}')
         detection_result.person_detections = detections_to_keep
@@ -143,7 +143,7 @@ class DetectionManager:
             any_exclusion_matched = False
             for exclusion in exclusions:
                 matches_exclusion = person_detection.matches_exclusion(exclusion)
-                log.info(
+                log.verbose(
                     f'Checking detection {person_detection} against exclusion {exclusion}: match={matches_exclusion}')
                 if matches_exclusion:
                     any_exclusion_matched = True

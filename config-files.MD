@@ -73,23 +73,28 @@ Example file contents:
 
 # notifications.json
 
-Settings for how notifications are sent when a detection occurs.  Currently supports notifications to either Telegram, MQTT, or just logging to the console.
+Settings for how notifications are sent when a detection occurs.  Supports one or more destinations simultaneously: Telegram, MQTT, ZoneMinder, or console.
 
 For information on setting up a Telegram bot and getting the token and chat ID, refer to https://core.telegram.org/bots/api
 
 | Setting | Description |
 | ------- | ----------- |
-| destination | Must be "telegram", "mqtt", or "console" |
-| telegram.token | Telegram token | 
+| destinations | Array of one or more destination names. Each entry must be "telegram", "mqtt", "zoneminder", or "console". |
+| telegram.token | Telegram token |
 | telegram.chat_id | Telegram chat ID |
 | mqtt.hostname | Hostname of the MQTT server |
 | mqtt.username | Username for MQTT authentication |
 | mqtt.password | Password for MQTT authentication |
+| zoneminder.hostname | Hostname of the ZoneMinder server |
+| zoneminder.monitor_number | ZoneMinder monitor number to trigger |
+| zoneminder.record_duration | Duration in seconds to record after a trigger |
+| zoneminder.username | (Optional) ZoneMinder username. If provided along with password, will be used to authenticate API requests and retrieve the recorded event URL after each trigger. |
+| zoneminder.password | (Optional) ZoneMinder password. |
 
 Example file contents for Telegram notifications:
 ```
 {
-    "destination": "telegram",
+    "destinations": ["telegram"],
     "telegram":
     {
         "token": "xxxxx",
@@ -98,22 +103,54 @@ Example file contents for Telegram notifications:
 }
 ```
 
-Example file contents for mqtt notifications:
+Example file contents for MQTT notifications:
 ```
 {
-    "destination": "telegram",
+    "destinations": ["mqtt"],
     "mqtt":
     {
+        "hostname": "192.168.1.10",
         "username": "user123",
-        "password": pass123
+        "password": "pass123"
     }    
+}
+```
+
+Example file contents for ZoneMinder notifications:
+```
+{
+    "destinations": ["zoneminder"],
+    "zoneminder":
+    {
+        "hostname": "192.168.1.10",
+        "monitor_number": 1,
+        "record_duration": 30
+    }
 }
 ```
 
 Example file contents for console notifications:
 ```
 {
-    "destination": "console"
+    "destinations": ["console"]
+}
+```
+
+Example file contents for multiple destinations (e.g. ZoneMinder and Telegram simultaneously):
+```
+{
+    "destinations": ["zoneminder", "telegram"],
+    "zoneminder":
+    {
+        "hostname": "192.168.1.10",
+        "monitor_number": 1,
+        "record_duration": 30
+    },
+    "telegram":
+    {
+        "token": "xxxxx",
+        "chat_id": 12345
+    }
 }
 ```
 
