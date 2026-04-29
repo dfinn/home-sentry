@@ -75,8 +75,6 @@ class DetectionManager:
         # Determine how many detections are inside of any zone versus outside of any zone
         (inside_zone_count, outside_zone_count) = source_definition.filter_detection_results_by_zone(detection_result)
 
-        source_name = source_definition.name
-
         if should_log:
             log.verbose(
                 f'Detection time {detection_elapsed_time:0.4f} seconds, inside_zone_count={inside_zone_count}, '
@@ -91,7 +89,7 @@ class DetectionManager:
                     log.info('Recent detection occurred, waiting for cool down period before next capture')
             if not had_recent_detection:
                 detection_result.draw_boxes()
-                self.notifier.notify_detections(detection_result, source_name)
+                self.notifier.notify_detections(detection_result, source_definition, log)
                 video_source.last_detection_time = time.time()
                 video_source.last_person_detection = detection_result.person_detections[0]
                 if self.save_images:
@@ -99,7 +97,7 @@ class DetectionManager:
                     log.info(f'Saving {dest}')
                     cv2.imwrite(dest, detection_result.image)
         if self.show_images:
-            show_image_foreground(source_name, detection_result.image, on_mouse_event)
+            show_image_foreground(source_definition.name, detection_result.image, on_mouse_event)
 
     def filter_by_confidence_threshold(self, detection_result: DetectionResult, source: VideoSource):
         """

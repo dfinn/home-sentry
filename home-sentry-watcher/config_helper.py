@@ -73,7 +73,7 @@ class ConfigHelper:
             if 'zoneminder' not in self.notifications:
                 raise KeyError('Missing required notifications/zoneminder section in config')
             zm_config = self.notifications['zoneminder']
-            return ZoneMinderNotifier(zm_config['hostname'], zm_config['monitor_number'], zm_config['record_duration'],
+            return ZoneMinderNotifier(zm_config['hostname'], zm_config['record_duration'],
                                        zm_config.get('username'), zm_config.get('password'))
         elif destination == 'console':
             return ConsoleNotifier()

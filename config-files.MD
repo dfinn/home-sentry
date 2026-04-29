@@ -86,7 +86,6 @@ For information on setting up a Telegram bot and getting the token and chat ID, 
 | mqtt.username | Username for MQTT authentication |
 | mqtt.password | Password for MQTT authentication |
 | zoneminder.hostname | Hostname of the ZoneMinder server |
-| zoneminder.monitor_number | ZoneMinder monitor number to trigger |
 | zoneminder.record_duration | Duration in seconds to record after a trigger |
 | zoneminder.username | (Optional) ZoneMinder username. If provided along with password, will be used to authenticate API requests and retrieve the recorded event URL after each trigger. |
 | zoneminder.password | (Optional) ZoneMinder password. |
@@ -123,7 +122,6 @@ Example file contents for ZoneMinder notifications:
     "zoneminder":
     {
         "hostname": "192.168.1.10",
-        "monitor_number": 1,
         "record_duration": 30
     }
 }
@@ -143,7 +141,6 @@ Example file contents for multiple destinations (e.g. ZoneMinder and Telegram si
     "zoneminder":
     {
         "hostname": "192.168.1.10",
-        "monitor_number": 1,
         "record_duration": 30
     },
     "telegram":
@@ -169,6 +166,7 @@ The following settings must be defined for each source:
 | url | The RTSP URL of the source |
 | enabled | Whether monitoring of this source is enabled |
 | confidence_threshold | Minimum confidence the detector must report for the detection to trigger a notification (example, 0.95 for 95% confidence) |
+| zoneminder_monitor_id | (Optional) ZoneMinder monitor ID for this source. Required when using the ZoneMinder notification destination. |
 | exclusions | List of detection locations (ie, bounding boxes) to exclude from notifications. |
 | zones | List of zones for this source. If none are defined, the entire image will be considered one zone. |
 
@@ -200,6 +198,7 @@ Example file contents:
         "url": "rtsp://username:password@192.168.1.100:554/cam/realmonitor?channel=1&subtype=1&unicast=true&proto=Onvif",
         "enabled": true,
         "confidence_threshold": 0.95,
+        "zoneminder_monitor_id": 1,
         "exclusions": [],
         "zones": []
     },
