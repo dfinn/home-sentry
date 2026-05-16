@@ -1,5 +1,6 @@
 import http.cookiejar
 import json
+import os
 import socket
 import tempfile
 import threading
@@ -79,9 +80,13 @@ class ZoneMinderNotifier(Notifier):
                 video_bytes = response.read()
             log.info(f'Downloaded {len(video_bytes)} bytes, Content-Type: {content_type}')
             with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp:
+                tmp_path = tmp.name
                 tmp.write(video_bytes)
-                log.info(f'Saved to {tmp.name}')
-            self.telegram_notifier.send_video(video_bytes, source_name, log)
+            log.info(f'Saved to {tmp_path}')
+            try:
+                self.telegram_notifier.send_video(video_bytes, source_name, log)
+            finally:
+                os.unlink(tmp_path)
         except Exception as e:
             log.info(f'ZoneMinder video download failed: {e}')
 
