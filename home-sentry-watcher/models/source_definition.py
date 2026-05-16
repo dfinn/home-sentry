@@ -50,6 +50,7 @@ class SourceDefinition:
         """
         inside_zone_count = 0
         outside_zone_count = 0
+        print(f'zones defined: {len(self.zones)}')
         if len(self.zones) > 0:
             for person_detection in detection_result.person_detections:
                 is_in_zone = False

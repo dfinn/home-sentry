@@ -1,5 +1,7 @@
+import http.cookiejar
 import json
 import socket
+import tempfile
 import threading
 import time
 import urllib.error
@@ -46,15 +48,42 @@ class ZoneMinderNotifier(Notifier):
                 data = json.loads(response.read())
             events = data.get('events', [])
             if events:
-                event_id = events[0]['Event']['Id']
-                event_url = f'http://{self.hostname}/zm/index.php?view=event&eid={event_id}'
-                log.info(f'ZoneMinder event URL: {event_url}')
+                event = events[0]['Event']
+                event_id = event['Id']
+                log.info(f'ZoneMinder event {event_id} recorded')
                 if self.telegram_notifier:
-                    self.telegram_notifier.send_text(f'{source_name}: {event_url}', log)
+                    if event.get('DefaultVideo'):
+                        self._download_and_send_video(event_id, source_name, log)
+                    else:
+                        event_url = f'http://{self.hostname}/zm/index.php?view=event&eid={event_id}'
+                        self.telegram_notifier.send_text(f'{source_name}: {event_url}', log)
             else:
                 log.info(f'ZoneMinder: no event found for monitor {monitor_id}')
         except Exception as e:
-            log.info(f'ZoneMinder event URL lookup failed: {e}')
+            log.info(f'ZoneMinder event lookup failed: {e}')
+
+    def _download_and_send_video(self, event_id, source_name, log):
+        try:
+            cookie_jar = http.cookiejar.CookieJar()
+            opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
+            login_data = urllib.parse.urlencode({
+                'action': 'login',
+                'username': self.username,
+                'password': self.password,
+            }).encode()
+            opener.open(f"http://{self.hostname}/zm/index.php", login_data, timeout=10)
+            download_url = f"http://{self.hostname}/zm/index.php?view=view_video&mode=mp4&eid={event_id}"
+            log.info(f'Downloading ZoneMinder event {event_id} video')
+            with opener.open(download_url, timeout=60) as response:
+                content_type = response.headers.get('Content-Type', 'unknown')
+                video_bytes = response.read()
+            log.info(f'Downloaded {len(video_bytes)} bytes, Content-Type: {content_type}')
+            with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as tmp:
+                tmp.write(video_bytes)
+                log.info(f'Saved to {tmp.name}')
+            self.telegram_notifier.send_video(video_bytes, source_name, log)
+        except Exception as e:
+            log.info(f'ZoneMinder video download failed: {e}')
 
     def _get_auth_token(self, log):
         if not self.username or not self.password:

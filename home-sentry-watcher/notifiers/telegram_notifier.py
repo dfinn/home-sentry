@@ -30,6 +30,12 @@ class TelegramNotifier(Notifier):
         files = {'photo': image}
         response = requests.post(self.url_for('sendPhoto'), {'chat_id': self.chat_id, 'caption': caption}, files=files)
 
+    def send_video(self, video_bytes, caption, log):
+        log.info(f'Sending video: {caption}')
+        files = {'video': video_bytes}
+        response = requests.post(self.url_for('sendVideo'), {'chat_id': self.chat_id, 'caption': caption}, files=files)
+        log.info(f'sendVideo: {response.status_code}')
+
     def url_for(self, method_name):
         return f'https://api.telegram.org/bot{self.token}/{method_name}'
 

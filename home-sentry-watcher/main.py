@@ -24,6 +24,7 @@ video_sources = source_manager.build_video_sources()
 show_images = config_helper.get_show_images()
 detection_manager = DetectionManager(detector, notifier, config_helper)
 
+print('Starting main capture loop')
 while True:
     for source in video_sources:
         detection_manager.capture_detect_notify(source)

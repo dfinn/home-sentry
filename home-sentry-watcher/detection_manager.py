@@ -62,6 +62,7 @@ class DetectionManager:
         log.verbose(f'Capturing image from source {source_definition.name}')
         image = video_source.capture()
         if image is None:
+            log.verbose('No image returned, skipping detection')
             return
         resized_image = self.resize_image(image, log)
         del image
@@ -73,6 +74,7 @@ class DetectionManager:
         self.filter_excluded_detections(detection_result, video_source)
 
         # Determine how many detections are inside of any zone versus outside of any zone
+        print(f'calling filter_detection_results_by_zone with {len(detection_result.person_detections)} detections')
         (inside_zone_count, outside_zone_count) = source_definition.filter_detection_results_by_zone(detection_result)
 
         if should_log:
@@ -144,6 +146,7 @@ class DetectionManager:
                 log.verbose(
                     f'Checking detection {person_detection} against exclusion {exclusion}: match={matches_exclusion}')
                 if matches_exclusion:
+                    log.verbose('Exclusion matched')
                     any_exclusion_matched = True
                     # If this exclusion was from the last person detection, then update the last person detection time.
                     if exclusion.id == 'last_person':
@@ -151,5 +154,7 @@ class DetectionManager:
                         source.last_person_detection.detection_time = time.time()
                     break
             if not any_exclusion_matched:
+                print('No exclusions matched, appending to detections_to_keep')
                 detections_to_keep.append(person_detection)
+        print(f'Returning from filter_excluded_detections with {len(detections_to_keep)} detections_to_keep')
         detection_result.person_detections = detections_to_keep
