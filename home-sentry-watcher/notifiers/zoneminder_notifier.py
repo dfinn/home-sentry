@@ -16,6 +16,17 @@ ZM_TRIGGER_PORT = 6802
 
 
 class ZoneMinderNotifier(Notifier):
+    """Triggers a ZoneMinder monitor to record when a person is detected.
+
+    On notify_detections, sends an "on" trigger to ZoneMinder's trigger daemon
+    (port 6802) for the source's configured zoneminder_monitor_id, forcing that
+    monitor to record for record_duration seconds even if it's not in an alarm
+    state. It then waits in a background thread for the recording to finish and
+    looks up the resulting event via the ZoneMinder API. If a Telegram notifier
+    is attached, it forwards the event to Telegram — downloading and sending the
+    video directly when one is available, or falling back to a link to the event
+    in the ZoneMinder web UI otherwise.
+    """
 
     def __init__(self, hostname, record_duration, username=None, password=None):
         self.hostname = hostname

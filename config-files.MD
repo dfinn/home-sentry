@@ -77,6 +77,15 @@ Settings for how notifications are sent when a detection occurs.  Supports one o
 
 For information on setting up a Telegram bot and getting the token and chat ID, refer to https://core.telegram.org/bots/api
 
+## Notification destinations
+
+| Destination | Description |
+| ----------- | ----------- |
+| telegram | Sends a message to a Telegram chat via a bot. If a ZoneMinder destination is also configured, the ZoneMinder notifier will use this destination to forward the recorded event as well (video if available, otherwise a link to the event). |
+| mqtt | Publishes a message to an MQTT broker, for integration with home automation systems (e.g. Home Assistant). |
+| zoneminder | Triggers a ZoneMinder monitor to start recording via ZoneMinder's trigger daemon. Requires zoneminder_monitor_id to be set on the source. |
+| console | Logs the detection to the console/log output. Useful for testing and troubleshooting. |
+
 | Setting | Description |
 | ------- | ----------- |
 | destinations | Array of one or more destination names. Each entry must be "telegram", "mqtt", "zoneminder", or "console". |
