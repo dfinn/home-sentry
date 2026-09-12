@@ -73,23 +73,36 @@ Example file contents:
 
 # notifications.json
 
-Settings for how notifications are sent when a detection occurs.  Currently supports notifications to either Telegram, MQTT, or just logging to the console.
+Settings for how notifications are sent when a detection occurs.  Supports one or more destinations simultaneously: Telegram, MQTT, ZoneMinder, or console.
 
 For information on setting up a Telegram bot and getting the token and chat ID, refer to https://core.telegram.org/bots/api
 
+## Notification destinations
+
+| Destination | Description |
+| ----------- | ----------- |
+| telegram | Sends a message to a Telegram chat via a bot. If a ZoneMinder destination is also configured, the ZoneMinder notifier will use this destination to forward the recorded event as well (video if available, otherwise a link to the event). |
+| mqtt | Publishes a message to an MQTT broker, for integration with home automation systems (e.g. Home Assistant). |
+| zoneminder | Triggers a ZoneMinder monitor to start recording via ZoneMinder's trigger daemon. Requires zoneminder_monitor_id to be set on the source. |
+| console | Logs the detection to the console/log output. Useful for testing and troubleshooting. |
+
 | Setting | Description |
 | ------- | ----------- |
-| destination | Must be "telegram", "mqtt", or "console" |
-| telegram.token | Telegram token | 
+| destinations | Array of one or more destination names. Each entry must be "telegram", "mqtt", "zoneminder", or "console". |
+| telegram.token | Telegram token |
 | telegram.chat_id | Telegram chat ID |
 | mqtt.hostname | Hostname of the MQTT server |
 | mqtt.username | Username for MQTT authentication |
 | mqtt.password | Password for MQTT authentication |
+| zoneminder.hostname | Hostname of the ZoneMinder server |
+| zoneminder.record_duration | Duration in seconds to record after a trigger |
+| zoneminder.username | (Optional) ZoneMinder username. If provided along with password, will be used to authenticate API requests and retrieve the recorded event URL after each trigger. |
+| zoneminder.password | (Optional) ZoneMinder password. |
 
 Example file contents for Telegram notifications:
 ```
 {
-    "destination": "telegram",
+    "destinations": ["telegram"],
     "telegram":
     {
         "token": "xxxxx",
@@ -98,22 +111,52 @@ Example file contents for Telegram notifications:
 }
 ```
 
-Example file contents for mqtt notifications:
+Example file contents for MQTT notifications:
 ```
 {
-    "destination": "telegram",
+    "destinations": ["mqtt"],
     "mqtt":
     {
+        "hostname": "192.168.1.10",
         "username": "user123",
-        "password": pass123
+        "password": "pass123"
     }    
+}
+```
+
+Example file contents for ZoneMinder notifications:
+```
+{
+    "destinations": ["zoneminder"],
+    "zoneminder":
+    {
+        "hostname": "192.168.1.10",
+        "record_duration": 30
+    }
 }
 ```
 
 Example file contents for console notifications:
 ```
 {
-    "destination": "console"
+    "destinations": ["console"]
+}
+```
+
+Example file contents for multiple destinations (e.g. ZoneMinder and Telegram simultaneously):
+```
+{
+    "destinations": ["zoneminder", "telegram"],
+    "zoneminder":
+    {
+        "hostname": "192.168.1.10",
+        "record_duration": 30
+    },
+    "telegram":
+    {
+        "token": "xxxxx",
+        "chat_id": 12345
+    }
 }
 ```
 
@@ -132,6 +175,7 @@ The following settings must be defined for each source:
 | url | The RTSP URL of the source |
 | enabled | Whether monitoring of this source is enabled |
 | confidence_threshold | Minimum confidence the detector must report for the detection to trigger a notification (example, 0.95 for 95% confidence) |
+| zoneminder_monitor_id | (Optional) ZoneMinder monitor ID for this source. Required when using the ZoneMinder notification destination. |
 | exclusions | List of detection locations (ie, bounding boxes) to exclude from notifications. |
 | zones | List of zones for this source. If none are defined, the entire image will be considered one zone. |
 
@@ -163,6 +207,7 @@ Example file contents:
         "url": "rtsp://username:password@192.168.1.100:554/cam/realmonitor?channel=1&subtype=1&unicast=true&proto=Onvif",
         "enabled": true,
         "confidence_threshold": 0.95,
+        "zoneminder_monitor_id": 1,
         "exclusions": [],
         "zones": []
     },

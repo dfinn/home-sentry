@@ -2,7 +2,9 @@ import json
 
 from notifiers.console_notifier import ConsoleNotifier
 from notifiers.mqtt_notifier import MqttNotifier
+from notifiers.multi_notifier import MultiNotifier
 from notifiers.telegram_notifier import TelegramNotifier
+from notifiers.zoneminder_notifier import ZoneMinderNotifier
 
 SETTINGS = "settings.json"
 DETECTOR = "detector.json"
@@ -51,20 +53,36 @@ class ConfigHelper:
             raise KeyError(f'Invalid detector name "{detector_name}"')
 
     def get_notifier(self):
-        notification_destination = self.notifications['destination']
-        print(f'Notification destination: {notification_destination}')
-        if notification_destination == 'mqtt':
+        destinations = self.notifications['destinations']
+        print(f'Notification destinations: {destinations}')
+        notifiers = [self._build_notifier(d) for d in destinations]
+        zm = next((n for n in notifiers if isinstance(n, ZoneMinderNotifier)), None)
+        tg = next((n for n in notifiers if isinstance(n, TelegramNotifier)), None)
+        if zm and tg:
+            zm.telegram_notifier = tg
+        return MultiNotifier(notifiers)
+
+    def _build_notifier(self, destination):
+        if destination == 'mqtt':
             if 'mqtt' not in self.notifications:
                 raise KeyError('Missing required notifications/mqtt section in config')
             mqtt_config = self.notifications['mqtt']
             return MqttNotifier(mqtt_config['hostname'], mqtt_config['username'], mqtt_config['password'])
-        elif notification_destination == 'telegram':
+        elif destination == 'telegram':
             if 'telegram' not in self.notifications:
                 raise KeyError('Missing required notifications/telegram section in config')
             telegram_config = self.notifications['telegram']
             return TelegramNotifier(telegram_config['token'], telegram_config['chat_id'])
-        elif notification_destination == 'console':
+        elif destination == 'zoneminder':
+            if 'zoneminder' not in self.notifications:
+                raise KeyError('Missing required notifications/zoneminder section in config')
+            zm_config = self.notifications['zoneminder']
+            return ZoneMinderNotifier(zm_config['hostname'], zm_config['record_duration'],
+                                       zm_config.get('username'), zm_config.get('password'))
+        elif destination == 'console':
             return ConsoleNotifier()
+        else:
+            raise KeyError(f'Unknown notification destination "{destination}"')
 
     def get_cool_down_interval(self):
         cool_down_interval = self.settings['cool_down_interval']

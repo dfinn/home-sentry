@@ -83,7 +83,7 @@ class PyTorchDetector(Detector):
                 (startX, startY, endX, endY) = box.astype("int")
                 top_left_relative = Point(startX / width, startY / height)
                 bottom_right_relative = Point(endX / width, endY / height)
-                video_source.log.info(
+                video_source.log.verbose(
                     f'Detection: conf={confidence}, TL={top_left_relative}, BR={bottom_right_relative}')
                 person_detection = PersonDetection(top_left_relative, bottom_right_relative, confidence,
                                                    time.time())

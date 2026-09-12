@@ -10,6 +10,6 @@ class TestNotifier(Notifier):
         self.num_notifications = 0
         pass
 
-    def notify_detections(self, detection_result: DetectionResult, source_name: str):
+    def notify_detections(self, detection_result: DetectionResult, source_definition, log):
         self.num_notifications += 1
-        print(f'TestNotifier: detected {detection_result.count()} people -- {source_name}')
+        log.info(f'TestNotifier: detected {detection_result.count()} people')

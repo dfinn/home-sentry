@@ -33,7 +33,7 @@ class MqttNotifier(Notifier):
             print(f'Error connecting to MQTT broker, result code {rc}')
             exit(1)
 
-    def notify_detections(self, detection_result: DetectionResult, source_name: str):
+    def notify_detections(self, detection_result: DetectionResult, source_definition, log):
         payload = json.dumps({'num_detections': detection_result.count()})
-        print(f'Publishing notification payload: {payload}')
+        log.info(f'Publishing MQTT notification payload: {payload}')
         self.client.publish(TOPIC, payload=payload, qos=0, retain=False)
